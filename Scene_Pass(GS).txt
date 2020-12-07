@@ -1,6 +1,6 @@
-//This is the Scene Pass Geometry Shader
-
 #version 400
+
+//This is the Scene Pass Geometry Shader
 
 void main() {
 

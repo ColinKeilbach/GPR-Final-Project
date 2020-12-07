@@ -1,6 +1,6 @@
-//This is the Bright Pass Vertex Shader
-
 #version 400
+
+//This is the Bright Pass Vertex Shader
 
 void main() {
 

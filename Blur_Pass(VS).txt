@@ -1,6 +1,6 @@
-//This is the Blur Pass Vertx Shader
-
 #version 400
+
+//This is the Blur Pass Vertx Shader
 
 void main() {
 

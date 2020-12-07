@@ -1,6 +1,6 @@
-//This is the Display Pass Vertex Shader
-
 #version 400
+
+//This is the Display Pass Vertex Shader
 
 void main() {
 
