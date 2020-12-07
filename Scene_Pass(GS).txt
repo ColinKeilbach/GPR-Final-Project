@@ -1,1 +1,7 @@
 //This is the Scene Pass Geometry Shader
+
+#version 400
+
+void main() {
+
+}

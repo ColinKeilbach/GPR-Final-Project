@@ -1,1 +1,7 @@
 //This is the Bright Pass Fragment Shader (Pixel Shader)
+
+#version 400
+
+void main() {
+
+}

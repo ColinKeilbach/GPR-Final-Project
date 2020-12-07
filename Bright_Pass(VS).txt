@@ -1,1 +1,7 @@
 //This is the Bright Pass Vertex Shader
+
+#version 400
+
+void main() {
+
+}

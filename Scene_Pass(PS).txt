@@ -1,1 +1,7 @@
 //This is the Scene Pass Fragment Shader (Pixel Shader)
+
+#version 400
+
+void main() {
+
+}
