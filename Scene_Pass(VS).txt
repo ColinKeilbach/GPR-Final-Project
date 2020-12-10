@@ -2,6 +2,52 @@
 
 //This is the Scene Pass Vertex Shader
 
-void main() {
+layout (location = 0) in vec4 aPosition;
+layout (location = 1) in vec3 aNormal;
+layout (location = 2) in vec2 aTexcoord;
 
+uniform mat4 uModelMat, uViewMat, uProjMat;
+
+out vec4 vNormal;
+
+//for fragment lighting
+out vec4 vLightDirection[3];
+out float vIntensity[3];
+out vec4 vPosition;
+out vec2 vTexcoord;
+
+//LIGHT STRUCTURE
+struct pLight {
+	vec4 center;
+	float intensity;
+};
+
+void main()
+{
+	vPosition = uViewMat * uModelMat * aPosition;
+	
+	gl_Position = uProjMat * vPosition; // w = distance from the viewer
+
+	vNormal = uViewMat * uModelMat * vec4(aNormal, 0.0);
+	
+	vTexcoord = aTexcoord;
+	
+	//Light setup
+	//object-space
+	pLight light[3];
+	//NOTE: MAKE SURE TO ATTACH THE POINT LIGHTS TO PARTICLES
+	light[0].center = vec4(5.0, 0.0, 0.0, 1.0);
+	light[1].center = vec4(0.0, 5.0, 0.0, 1.0);
+	light[2].center = vec4(0.0, 0.0, 5.0, 1.0);
+	light[0].intensity = 1.0;
+	light[1].intensity = 1.0;
+	light[2].intensity = 1.0;
+	
+	//Moves the light into view-space and passes them into the Fragment Shader
+	vLightDirection[0] = uViewMat * light[0].center - vPosition;
+	vLightDirection[1] = uViewMat * light[1].center - vPosition;
+	vLightDirection[2] = uViewMat * light[2].center - vPosition;
+	vIntensity[0] = light[0].intensity;
+	vIntensity[1] = light[1].intensity;
+	vIntensity[2] = light[2].intensity;
 }
