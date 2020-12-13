@@ -2,6 +2,39 @@
 
 //This is the Bright Pass Fragment Shader (Pixel Shader)
 
-void main() {
+#ifdef GL_ES
+precision highp float; // If GLSL ES is detected, add required precision setting.
+#endif // GL_ES
 
+layout (location = 0) out vec4 rtFragColor;
+
+in vec2 vTexcoord;
+
+uniform vec2 uResolution; //vec2 ViewportSize
+uniform sampler2D uTex; // represented by 0
+
+//Gets the luminance
+float luma(vec3 color) {
+    return 0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b;
+}
+
+//Bloom calculation
+vec4 bloom(vec4 color, float minLuma) {
+    vec4 returnColor = color;
+    
+    //This calculates the bloom by using the luminance of the pixel to decide to make the pixel lighter or darker
+    returnColor = returnColor * clamp(luma(returnColor.rgb) - minLuma, 0.0, 1.0) * (1.0 / (1.0 - minLuma));
+    
+    return returnColor;
+}
+
+void main() {
+	vec2 uv = vTexcoord;
+	vec4 col = texture(uTex, uv);
+
+	rtFragColor = col; //draws to ScreenQuadNDC -> gFSQ
+	
+	float minLuma = 0.5; //Threshold for luminance
+	
+	rtFragColor = bloom(rtFragColor, minLuma);
 }
