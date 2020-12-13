@@ -2,6 +2,71 @@
 
 //This is the Scene Pass Fragment Shader (Pixel Shader)
 
-void main() {
+#ifdef GL_ES
+precision highp float; // If GLSL ES is detected, add required precision setting.
+#endif // GL_ES
 
+//Helper functions
+//x^2
+float sq(float x) {
+	return x * x;
+}
+
+//x^2^2^2^2^2
+float sq_5(float x) {
+	return sq(sq(sq(sq(sq(x)))));
+}
+
+layout (location = 0) out vec4 rtFragColor;
+
+in vec4 vNormal;
+
+in vec4 vLightDirection[3];
+in float vIntensity[3];
+in vec4 vPosition;
+in vec2 vTexcoord;
+
+uniform sampler2D uTex; // represented by 0
+
+//-------------------------------------------------------------------------------------
+//LIGHT CALCULATIONS
+void lightCalc(out float diffuseIntensity, out float specularIntensity, in vec4 direction, in float intensity, in vec4 position, in vec4 camera){
+	//specularIntensity calculation
+	vec4 halfwayVector = normalize(direction - camera);
+
+	float specularCoefficient = max(0.0, dot(vNormal, vec4(halfwayVector.xyz, 0.0)));
+	
+	specularIntensity = sq_5(sq_5(specularCoefficient)); //focuses the highlight
+	
+	//diffuseIntensity calculation
+	float dist = length(direction);
+	
+	float diffuseCoefficient = max(0.0, dot(vNormal, direction)); //max stops it from being negative
+
+	float attenuatedIntensity = 1.0 / (1.0 + dist / intensity + sq(dist) / sq(intensity));
+	
+	diffuseIntensity = diffuseCoefficient * attenuatedIntensity;
+}
+
+void main() {
+	//Solid Color
+	rtFragColor = vec4(1.0, 0.0, 0.0, 1.0);
+	//Texture
+	vec2 uv = vTexcoord;
+	//rtFragColor = texture(uTex, uv);
+	
+	//Light
+	float diffuseIntensity[3], specularIntensity[3];
+	lightCalc(diffuseIntensity[0], specularIntensity[0], vLightDirection[0], vIntensity[0], vPosition, vec4(0.0)); //camera is 0,0,0 in view-space
+	lightCalc(diffuseIntensity[1], specularIntensity[1], vLightDirection[1], vIntensity[1], vPosition, vec4(0.0));
+	lightCalc(diffuseIntensity[2], specularIntensity[2], vLightDirection[2], vIntensity[2], vPosition, vec4(0.0));
+	
+	rtFragColor = 0.3 * rtFragColor; //0.3 is ambient light
+	rtFragColor += (diffuseIntensity[0] * vec4(1.0) + specularIntensity[0] * vec4(1.0));
+	rtFragColor += (diffuseIntensity[1] * vec4(1.0) + specularIntensity[1] * vec4(1.0));
+	rtFragColor += (diffuseIntensity[2] * vec4(1.0) + specularIntensity[2] * vec4(1.0));
+	//go to objects
+	//create RT rtScene
+	//change Properties for the program
+	//change render target to rtScene
 }
