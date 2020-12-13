@@ -2,6 +2,40 @@
 
 //This is the Blur Pass Fragment Shader (Pixel Shader)
 
-void main() {
+#ifdef GL_ES
+precision highp float; // If GLSL ES is detected, add required precision setting.
+#endif // GL_ES
 
+layout (location = 0) out vec4 rtFragColor;
+
+in vec2 vTexcoord;
+
+uniform vec2 uResolution; //vec2 ViewportSize
+uniform sampler2D uTex; // represented by 0
+
+void main() {
+	vec2 uv = vTexcoord;
+	
+	//col is set equal to
+	// (-1,+1), ( 0,+1), (+1,+1)
+	// (-1, 0), ( 0, 0), (+1, 0)
+	// (-1,-1), ( 0,-1), (+1,-1)
+	// ( 0, 0) is the current pixel
+	// these are then multiplied by the 3x3 matrix
+	// 1, 2, 1
+	// 2, 4, 2
+	// 1, 2, 1
+	// and divided by 16
+	// this makes the matrix
+	// 0.0625, 0.1250, 0.0625
+	// 0.1250, 0.2500, 0.1250
+	// 0.0625, 0.1250, 0.0625
+	
+	vec4 col = (
+		texture(uTex, vec2(uv.x - 1.0, uv.y + 1.0)) * 0.0625 + texture(uTex, vec2(uv.x, uv.y + 1.0)) * 0.1250  + texture(uTex, vec2(uv.x + 1.0, uv.y + 1.0)) * 0.0625 +
+        texture(uTex, vec2(uv.x - 1.0, uv.y)) * 0.1250       + texture(uTex, uv) * 0.2500                      + texture(uTex, vec2(uv.x + 1.0, uv.y)) * 0.1250       +
+        texture(uTex, vec2(uv.x - 1.0, uv.y - 1.0)) * 0.0625 + texture(uTex, vec2(uv.x, uv.y - 1.0)) * 0.1250  + texture(uTex, vec2(uv.x + 1.0, uv.y - 1.0)) * 0.0625
+    );
+
+	rtFragColor = col; //draws to ScreenQuadNDC -> gFSQ
 }
