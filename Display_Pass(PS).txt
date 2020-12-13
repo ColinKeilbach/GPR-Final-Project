@@ -2,6 +2,23 @@
 
 //This is the Display Pass Fragment Shader (Pixel Shader)
 
-void main() {
+#ifdef GL_ES
+precision highp float; // If GLSL ES is detected, add required precision setting.
+#endif // GL_ES
 
+layout (location = 0) out vec4 rtFragColor;
+
+in vec2 vTexcoord;
+
+uniform vec2 uResolution; //vec2 ViewportSize
+uniform sampler2D uTex; // represented by '0'
+uniform sampler2D uTex1; // represented by 1
+
+void main() {
+	//sampler, uv
+	vec2 uv = vTexcoord;
+	vec4 col = texture(uTex, uv) + texture(uTex1, uv);
+	col *= 0.5; // adverages the bloom and scene
+
+	rtFragColor = col; //draws to ScreenQuadNDC -> gFSQ
 }
