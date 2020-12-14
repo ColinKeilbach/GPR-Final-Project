@@ -1,4 +1,4 @@
-#version 400
+#version 400 es
 
 //This is the Scene Pass Fragment Shader (Pixel Shader)
 
@@ -196,16 +196,18 @@ vec4 calcColor(in vec4 rayDirection, in vec4 rayOrigin)
 	//Check for flame color.
 	if(flameColor)
 	{
-	    for(float j = -maxSpheres; j < 0; j++)
+	    for(int j = -maxSpheres; j < 0; j++)
     	{
-    		initSphere(sphere, vec3(tan(j) * 0.3 + 0.1, sq(noise(j)) - 0.5, 0.0), 0.1, vec4(1.0, abs(noise(j)), 0.0, 1.0));
+    		float i = float(j);
+    		initSphere(sphere, vec3(tan(i) * 0.3 + 0.1, sq(noise(i)) - 0.5, 0.0), 0.1, vec4(1.0, abs(noise(i)), 0.0, 1.0));
     	}
     }
     else
     {
-    	for(float j = -maxSpheres; j < 0; j++)
+    	for(int j = -maxSpheres; j < 0; j++)
     	{
-    		initSphere(sphere, vec3(tan(j) * 0.3 + 0.1, sq(noise(j)) - 0.5, 0.0), 0.1, vec4(0.0, abs(noise(j)), 1.0, 1.0));
+    		float i = float(j);
+    		initSphere(sphere, vec3(tan(i) * 0.3 + 0.1, sq(noise(i)) - 0.5, 0.0), 0.1, vec4(0.0, abs(noise(i)), 1.0, 1.0));
     	}
     }
 	
