@@ -12,6 +12,7 @@ uniform vec2 uResolution;
 uniform float time;
 uniform sampler2D uNoise;
 uniform bool flameColor;
+uniform vec4 pressed;
 
 in vec2 vTexCoord;
 in vec4 vPosClip;
@@ -202,14 +203,15 @@ vec4 calcColor(in vec4 rayDirection, in vec4 rayOrigin)
     // SCENE
     //Declare a sphere and define its components
     sSphere sphere;
+    
 	
 	//Check for flame color.
-	if(flameColor)
+	if(pressed.z == 0.0)
 	{
 	    for(int j = -maxSpheres; j < 0; j++)
     	{
     		float i = float(j);
-    		initSphere(sphere, vec3(tan(i) * 0.3 + 0.1, sq(noise(i)) - 0.9, 0.0), 0.1, vec4(1.0, abs(noise(i)), 0.0, 1.0));
+    		initSphere(sphere, vec3(tan(i) * 0.3 + 0.1, sq(noise(i)) - 0.9, 0.0), 0.1, vec4(pressed.y, abs(noise(i)), pressed.x, 1.0));
     	}
     }
     else
@@ -217,7 +219,7 @@ vec4 calcColor(in vec4 rayDirection, in vec4 rayOrigin)
     	for(int j = -maxSpheres; j < 0; j++)
     	{
     		float i = float(j);
-    		initSphere(sphere, vec3(tan(i) * 0.3 + 0.1, sq(noise(i)) - 0.9, 0.0), 0.1, vec4(0.0, abs(noise(i)), 1.0, 1.0));
+    		initSphere(sphere, vec3(tan(i) * 0.3 + 0.1, sq(noise(i)) - 0.9, 0.0), 0.1, vec4(1.0, abs(noise(i)), 0.0, 1.0));
     	}
     }
 	
