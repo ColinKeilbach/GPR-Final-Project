@@ -1,4 +1,4 @@
-#version 400 es
+#version 400
 
 //This is the Scene Pass Fragment Shader (Pixel Shader)
 
