@@ -9,19 +9,21 @@ layout (location = 2) in vec2 aTexCoord;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 uniform mat4 modelMatrix;
+uniform float uTime;
 
 out vec2 vTexCoord;
 out vec4 vPosClip;
-
 out vec4 vNormal;
 
 //for fragment lighting
-out vec4 vLightDirection[3];
-out float vIntensity[3];
+out vec4 vLightDirection[10];
+out float vIntensity[10];
 out vec4 vPosition;
 out vec2 vTexcoord;
 
 //LIGHT STRUCTURE
+//center: define center of the light
+//intensity: define intensity of the light
 struct pLight {
 	vec4 center;
 	float intensity;
@@ -31,7 +33,6 @@ void main()
 {	
   vec4 world_pos = modelMatrix * aPosition;
   vec4 view_pos = viewMatrix * world_pos;
-  //gl_Position = projectionMatrix * view_pos;
   gl_Position = aPosition;
   
   vNormal = viewMatrix * modelMatrix * vec4(aNormal, 0.0);
@@ -40,22 +41,53 @@ void main()
   
   vPosClip = gl_Position;
   
+  vPosition = aPosition;
+  
   //Light setup
   //object-space
-  pLight light[3];
+  pLight light[10];
   //NOTE: MAKE SURE TO ATTACH THE POINT LIGHTS TO PARTICLES
-  light[0].center = vec4(5.0, 0.0, 0.0, 1.0);
-  light[1].center = vec4(0.0, 5.0, 0.0, 1.0);
-  light[2].center = vec4(0.0, 0.0, 5.0, 1.0);
+  light[0].center = vec4(5.0, -3.0, -6.0, 1.0);
+  light[1].center = vec4(5.1, mod(uTime, 4.0), -6.0, 1.0);
+  light[2].center = vec4(5.2, -1.0, -6.0, 1.0);
+  light[3].center = vec4(5.3, mod(uTime, 3.5), -6.0, 1.0);
+  light[4].center = vec4(5.4, -2.0, -6.0, 1.0);
+  light[5].center = vec4(5.5, mod(uTime, 3.0), -6.0, 1.0);
+  light[6].center = vec4(5.6, -3.0, -6.0, 1.0);
+  light[7].center = vec4(5.7, mod(uTime, 2.5), -6.0, 1.0);
+  light[8].center = vec4(5.8, -1.0, -6.0, 1.0);
+  light[9].center = vec4(5.9, mod(uTime, 2.0), -6.0, 1.0);
   light[0].intensity = 1.0;
   light[1].intensity = 1.0;
   light[2].intensity = 1.0;
+  light[3].intensity = 1.0;
+  light[4].intensity = 1.0;
+  light[5].intensity = 1.0;
+  light[6].intensity = 1.0;
+  light[7].intensity = 1.0;
+  light[8].intensity = 1.0;
+  light[9].intensity = 1.0;
 	
   //Moves the light into view-space and passes them into the Fragment Shader
   vLightDirection[0] = viewMatrix * light[0].center - vPosition;
   vLightDirection[1] = viewMatrix * light[1].center - vPosition;
   vLightDirection[2] = viewMatrix * light[2].center - vPosition;
+  vLightDirection[3] = viewMatrix * light[3].center - vPosition;
+  vLightDirection[4] = viewMatrix * light[4].center - vPosition;
+  vLightDirection[5] = viewMatrix * light[5].center - vPosition;
+  vLightDirection[6] = viewMatrix * light[6].center - vPosition;
+  vLightDirection[7] = viewMatrix * light[7].center - vPosition;
+  vLightDirection[8] = viewMatrix * light[8].center - vPosition;
+  vLightDirection[9] = viewMatrix * light[9].center - vPosition;
   vIntensity[0] = light[0].intensity;
   vIntensity[1] = light[1].intensity;
   vIntensity[2] = light[2].intensity;
+  vIntensity[3] = light[3].intensity;
+  vIntensity[4] = light[4].intensity;
+  vIntensity[5] = light[5].intensity;
+  vIntensity[6] = light[6].intensity;
+  vIntensity[7] = light[7].intensity;
+  vIntensity[8] = light[8].intensity;
+  vIntensity[9] = light[9].intensity;
+  
 }

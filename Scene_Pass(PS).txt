@@ -17,8 +17,8 @@ in vec2 vTexCoord;
 in vec4 vPosClip;
 
 in vec4 vNormal;
-in vec4 vLightDirection[3];
-in float vIntensity[3];
+in vec4 vLightDirection[10];
+in float vIntensity[10];
 in vec4 vPosition;
 in vec2 vTexcoord;
 
@@ -152,6 +152,9 @@ float sq_5(float x) {
 }
 
 //NOISE FUNCTION
+//Essentially a random number generating.
+//Works by using a noise texture and a preset graph function
+// to return a red value of the color of the texure at a certain point.
 float noise(in float seed) {
 	float normalizedSeed = sin(sq(mod(time, 100.0) * seed)); //makes this graph https://www.desmos.com/calculator/wc7okcgjjb
 	vec4 noiseCoord = texture(uNoise, vec2(normalizedSeed, -normalizedSeed)); //gets the color from noise.jpg
@@ -162,18 +165,25 @@ float noise(in float seed) {
 
 //-------------------------------------------------------------------------------------
 //LIGHT CALCULATIONS
-void lightCalc(out float diffuseIntensity, out float specularIntensity, in vec4 direction, in float intensity, in vec4 position, in vec4 camera){
+/*
+Phong Reflectance calculation
+Use diffuse, specular, and ambient lighting to calculate rays bounced off a surface
+Adds a specular highlight to emphasize light source.
+Outputs light as final color.
+*/
+void lightCalc(out float diffuseIntensity, out float specularIntensity, in vec4 direction, 
+				in float intensity, in vec4 position, in vec4 camera, in vec3 normal){
 	//specularIntensity calculation
 	vec4 halfwayVector = normalize(direction - camera);
 
-	float specularCoefficient = max(0.0, dot(vNormal, vec4(halfwayVector.xyz, 0.0)));
+	float specularCoefficient = max(0.0, dot(vec4(normal, 1.0), vec4(halfwayVector.xyz, 0.0)));
 	
 	specularIntensity = sq_5(sq_5(specularCoefficient)); //focuses the highlight
 	
 	//diffuseIntensity calculation
 	float dist = length(direction);
 	
-	float diffuseCoefficient = max(0.0, dot(vNormal, direction)); //max stops it from being negative
+	float diffuseCoefficient = max(0.0, dot(vec4(normal, 1.0), direction)); //max stops it from being negative
 
 	float attenuatedIntensity = 1.0 / (1.0 + dist / intensity + sq(dist) / sq(intensity));
 	
@@ -199,7 +209,7 @@ vec4 calcColor(in vec4 rayDirection, in vec4 rayOrigin)
 	    for(int j = -maxSpheres; j < 0; j++)
     	{
     		float i = float(j);
-    		initSphere(sphere, vec3(tan(i) * 0.3 + 0.1, sq(noise(i)) - 0.5, 0.0), 0.1, vec4(1.0, abs(noise(i)), 0.0, 1.0));
+    		initSphere(sphere, vec3(tan(i) * 0.3 + 0.1, sq(noise(i)) - 0.9, 0.0), 0.1, vec4(1.0, abs(noise(i)), 0.0, 1.0));
     	}
     }
     else
@@ -207,7 +217,7 @@ vec4 calcColor(in vec4 rayDirection, in vec4 rayOrigin)
     	for(int j = -maxSpheres; j < 0; j++)
     	{
     		float i = float(j);
-    		initSphere(sphere, vec3(tan(i) * 0.3 + 0.1, sq(noise(i)) - 0.5, 0.0), 0.1, vec4(0.0, abs(noise(i)), 1.0, 1.0));
+    		initSphere(sphere, vec3(tan(i) * 0.3 + 0.1, sq(noise(i)) - 0.9, 0.0), 0.1, vec4(0.0, abs(noise(i)), 1.0, 1.0));
     	}
     }
 	
@@ -222,31 +232,54 @@ vec4 calcColor(in vec4 rayDirection, in vec4 rayOrigin)
     	}
     }
     
-    /*
+    
     sSphere sphereTwo;
-    initSphere(sphereTwo, vec3(0.0, 0.0, 0.0), mod(time, 2.0), vec4(0.0, 1.0, 0.0, 1.0));
-    //Light
-	float diffuseIntensity[3], specularIntensity[3];
-	lightCalc(diffuseIntensity[0], specularIntensity[0], vLightDirection[0], vIntensity[0], vPosition, vec4(0.0)); //camera is 0,0,0 in view-space
-	lightCalc(diffuseIntensity[1], specularIntensity[1], vLightDirection[1], vIntensity[1], vPosition, vec4(0.0));
-	lightCalc(diffuseIntensity[2], specularIntensity[2], vLightDirection[2], vIntensity[2], vPosition, vec4(0.0));
-	
-	sphereTwo.color = 0.3 * sphereTwo.color; //0.3 is ambient light
-	sphereTwo.color += (diffuseIntensity[0] * vec4(1.0) + specularIntensity[0] * vec4(1.0));
-	sphereTwo.color += (diffuseIntensity[1] * vec4(1.0) + specularIntensity[1] * vec4(1.0));
-	sphereTwo.color += (diffuseIntensity[2] * vec4(1.0) + specularIntensity[2] * vec4(1.0));
+    initSphere(sphereTwo, vec3(0.0, 0.5, 0.0), 1.0, vec4(1.0, 1.0, 1.0, 1.0));
     
     vec3 dp;
     dp.xy = rayDirection.xy - sphereTwo.center.xy;
     float lSq = lenSq(dp.xy), 
         rSq = sphereTwo.radius * sphereTwo.radius;
+        
+    dp.z = rSq - lSq;
+    
+    vec3 position = sphereTwo.center.xyz + vec3(dp.x, dp.y, sqrt(dp.z));
+    
+    vec3 normal = (position - sphereTwo.center.xyz) / sphereTwo.radius;
+    
+    //Light setup for background lighting
+	float diffuseIntensity[10], specularIntensity[10];
+	lightCalc(diffuseIntensity[0], specularIntensity[0], vLightDirection[0], vIntensity[0], vPosition, vec4(0.0), normal); //camera is 0,0,0 in view-space
+	lightCalc(diffuseIntensity[1], specularIntensity[1], vLightDirection[1], vIntensity[1], vPosition, vec4(0.0), normal);
+	lightCalc(diffuseIntensity[2], specularIntensity[2], vLightDirection[2], vIntensity[2], vPosition, vec4(0.0), normal);
+	lightCalc(diffuseIntensity[3], specularIntensity[3], vLightDirection[3], vIntensity[3], vPosition, vec4(0.0), normal);
+	lightCalc(diffuseIntensity[4], specularIntensity[4], vLightDirection[4], vIntensity[4], vPosition, vec4(0.0), normal);
+	lightCalc(diffuseIntensity[5], specularIntensity[5], vLightDirection[5], vIntensity[5], vPosition, vec4(0.0), normal);
+	lightCalc(diffuseIntensity[6], specularIntensity[6], vLightDirection[6], vIntensity[6], vPosition, vec4(0.0), normal);
+	lightCalc(diffuseIntensity[7], specularIntensity[7], vLightDirection[7], vIntensity[7], vPosition, vec4(0.0), normal);
+	lightCalc(diffuseIntensity[8], specularIntensity[8], vLightDirection[8], vIntensity[8], vPosition, vec4(0.0), normal);
+	lightCalc(diffuseIntensity[9], specularIntensity[9], vLightDirection[9], vIntensity[9], vPosition, vec4(0.0), normal);
+	
+	sphereTwo.color = 0.6 * sphereTwo.color; //0.6 is ambient light
+	sphereTwo.color += (diffuseIntensity[0] * vec4(1.0) + specularIntensity[0] * vec4(1.0));
+	sphereTwo.color += (diffuseIntensity[1] * vec4(1.0) + specularIntensity[1] * vec4(1.0));
+	sphereTwo.color += (diffuseIntensity[2] * vec4(1.0) + specularIntensity[2] * vec4(1.0));
+	sphereTwo.color += (diffuseIntensity[3] * vec4(1.0) + specularIntensity[3] * vec4(1.0));
+	sphereTwo.color += (diffuseIntensity[4] * vec4(1.0) + specularIntensity[4] * vec4(1.0));
+	sphereTwo.color += (diffuseIntensity[5] * vec4(1.0) + specularIntensity[5] * vec4(1.0));
+	sphereTwo.color += (diffuseIntensity[6] * vec4(1.0) + specularIntensity[6] * vec4(1.0));
+	sphereTwo.color += (diffuseIntensity[7] * vec4(1.0) + specularIntensity[7] * vec4(1.0));
+	sphereTwo.color += (diffuseIntensity[8] * vec4(1.0) + specularIntensity[8] * vec4(1.0));
+	sphereTwo.color += (diffuseIntensity[9] * vec4(1.0) + specularIntensity[9] * vec4(1.0));
+	
+    
     if(lSq <= rSq)
     {
     	return sphereTwo.color;
     }
-    */
+    
 	
-	// BACKGROUND
+	// Background gradient
 	const vec3 colorOne = vec3(0.8, 0.6, 0.0), colorTwo = vec3(0.1, 0.3, 0.7);
 	return vec4(mix(colorOne, colorTwo, rayDirection.y), 1.0);
 }
@@ -274,16 +307,4 @@ void main()
     calcRay(rayDirection, rayOrigin, vec3(0.0), viewport);
     
     rtFragColor += calcColor(rayDirection, rayOrigin);
-    
-    //Light
-	float diffuseIntensity[3], specularIntensity[3];
-	lightCalc(diffuseIntensity[0], specularIntensity[0], vLightDirection[0], vIntensity[0], vPosition, vec4(0.0)); //camera is 0,0,0 in view-space
-	lightCalc(diffuseIntensity[1], specularIntensity[1], vLightDirection[1], vIntensity[1], vPosition, vec4(0.0));
-	lightCalc(diffuseIntensity[2], specularIntensity[2], vLightDirection[2], vIntensity[2], vPosition, vec4(0.0));
-	
-	rtFragColor = 0.7 * rtFragColor; //0.7 is ambient light
-	rtFragColor += (diffuseIntensity[0] * vec4(1.0) + specularIntensity[0] * vec4(1.0));
-	rtFragColor += (diffuseIntensity[1] * vec4(1.0) + specularIntensity[1] * vec4(1.0));
-	rtFragColor += (diffuseIntensity[2] * vec4(1.0) + specularIntensity[2] * vec4(1.0));
-	
 }
